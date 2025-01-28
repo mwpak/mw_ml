@@ -1,4 +1,4 @@
-"""v1.0 - 241219"""
+"""v1.1 - 250125"""
 
 import os
 import pandas as pd
@@ -94,3 +94,70 @@ def balance_by_label(
         plt.show()
 
     return balanced_df
+
+
+# * ====== Performance metrics ====== * #
+def evaluate_prediction(
+    pred_df, pred_col="pred", y_col="Y", labels=[0, 1], pos_label=1, report=True
+):
+    from sklearn.metrics import (
+        confusion_matrix,
+        classification_report,
+        f1_score,
+        precision_score,
+        accuracy_score,
+        recall_score,
+    )
+
+    # === Report === #
+    # Confusion matrix
+    conf_matrix = confusion_matrix(pred_df[y_col], pred_df[pred_col], labels=labels)
+
+    # Classification report
+    if report:
+        print(classification_report(pred_df[y_col], pred_df[pred_col]))
+
+    # === Metrics scores === #
+    # TN, FP, FN, TP
+    tn, fp, fn, tp = confusion_matrix(
+        pred_df[y_col], pred_df[pred_col], labels=labels
+    ).ravel()
+    if report:
+        print(f"TN: {tn}, FP: {fp}, FN: {fn}, TP: {tp}")
+
+    # Accuracy
+    acc_man = (tp + tn) / (tp + tn + fp + fn)
+    acc = accuracy_score(pred_df[y_col], pred_df[pred_col])
+    assert acc == acc_man
+
+    # Precision
+    prec_man = tp / (tp + fp)
+    prec = precision_score(
+        pred_df[y_col], pred_df[pred_col], labels=labels, pos_label=pos_label
+    )
+    assert prec == prec_man
+
+    # Recall
+    recall_man = tp / (tp + fn)
+    recall = recall_score(
+        pred_df[y_col], pred_df[pred_col], labels=labels, pos_label=pos_label
+    )
+    assert recall == recall_man
+
+    # F1 score
+    f1_man = 2 * (prec * recall) / (prec + recall)
+    f1 = f1_score(pred_df[y_col], pred_df[pred_col], labels=labels, pos_label=pos_label)
+    assert f1 == f1_man
+
+    return acc, prec, recall, f1, conf_matrix
+
+
+# # Example usage
+# acc, prec, recall, f1, conf_matrix = evaluate_prediction(
+#     target_df,
+#     pred_col="best_pred_adj",
+#     y_col="Y",
+#     labels=["WT", "MUT"],
+#     pos_label="MUT",
+# )
+# print(f"Accuracy: {acc:.4f}, Precision: {prec:.4f}, Recall: {recall:.4f}, F1: {f1:.4f}")
