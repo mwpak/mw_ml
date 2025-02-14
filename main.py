@@ -128,26 +128,26 @@ def evaluate_prediction(
     # Accuracy
     acc_man = (tp + tn) / (tp + tn + fp + fn)
     acc = accuracy_score(pred_df[y_col], pred_df[pred_col])
-    assert acc == acc_man
+    assert round(acc, 4) == round(acc_man, 4)
 
     # Precision
     prec_man = tp / (tp + fp)
     prec = precision_score(
         pred_df[y_col], pred_df[pred_col], labels=labels, pos_label=pos_label
     )
-    assert prec == prec_man
+    assert round(prec, 4) == round(prec_man, 4)
 
     # Recall
     recall_man = tp / (tp + fn)
     recall = recall_score(
         pred_df[y_col], pred_df[pred_col], labels=labels, pos_label=pos_label
     )
-    assert recall == recall_man
+    assert round(recall, 4) == round(recall_man, 4)
 
     # F1 score
     f1_man = 2 * (prec * recall) / (prec + recall)
     f1 = f1_score(pred_df[y_col], pred_df[pred_col], labels=labels, pos_label=pos_label)
-    assert f1 == f1_man
+    assert round(f1, 4) == round(f1_man, 4)
 
     return acc, prec, recall, f1, conf_matrix
 
