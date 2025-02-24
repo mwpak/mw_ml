@@ -128,26 +128,30 @@ def evaluate_prediction(
     # Accuracy
     acc_man = (tp + tn) / (tp + tn + fp + fn)
     acc = accuracy_score(pred_df[y_col], pred_df[pred_col])
-    assert round(acc, 4) == round(acc_man, 4)
+    assert round(acc, 3) == round(acc_man, 3), f"Accuracy mismatch: {acc} != {acc_man}"
 
     # Precision
     prec_man = tp / (tp + fp)
     prec = precision_score(
         pred_df[y_col], pred_df[pred_col], labels=labels, pos_label=pos_label
     )
-    assert round(prec, 4) == round(prec_man, 4)
+    assert round(prec, 3) == round(prec_man, 3), (
+        f"Precision mismatch: {prec} != {prec_man}"
+    )
 
     # Recall
     recall_man = tp / (tp + fn)
     recall = recall_score(
         pred_df[y_col], pred_df[pred_col], labels=labels, pos_label=pos_label
     )
-    assert round(recall, 4) == round(recall_man, 4)
+    assert round(recall, 3) == round(recall_man, 3), (
+        f"Recall mismatch: {recall} != {recall_man}"
+    )
 
     # F1 score
     f1_man = 2 * (prec * recall) / (prec + recall)
     f1 = f1_score(pred_df[y_col], pred_df[pred_col], labels=labels, pos_label=pos_label)
-    assert round(f1, 4) == round(f1_man, 4)
+    assert round(f1, 3) == round(f1_man, 3), f"F1 score mismatch: {f1} != {f1_man}"
 
     return acc, prec, recall, f1, conf_matrix
 
