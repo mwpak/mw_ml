@@ -1,4 +1,4 @@
-"""v1.1 - 250125"""
+"""v1.2 - 250308"""
 
 import os
 import pandas as pd
@@ -108,6 +108,15 @@ def evaluate_prediction(
         accuracy_score,
         recall_score,
     )
+
+    # Validate the labels
+    if (
+        not pd.Series(labels).isin(pred_df[y_col].unique()).all()
+        or not pd.Series(labels).isin(pred_df[pred_col].unique()).all()
+    ):
+        print("Labels mismatch between the prediction and the target.")
+        acc = prec = recall = f1 = 0
+        return acc, prec, recall, f1, None
 
     # === Report === #
     # Confusion matrix
