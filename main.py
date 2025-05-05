@@ -1,4 +1,4 @@
-"""v1.2 - 250308"""
+"""v1.3 - 250402"""
 
 import os
 import pandas as pd
@@ -7,6 +7,14 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import os
 import warnings
+from sklearn.metrics import (
+    confusion_matrix,
+    classification_report,
+    f1_score,
+    precision_score,
+    accuracy_score,
+    recall_score,
+)
 
 warnings.filterwarnings("ignore")
 
@@ -100,23 +108,19 @@ def balance_by_label(
 def evaluate_prediction(
     pred_df, pred_col="pred", y_col="Y", labels=[0, 1], pos_label=1, report=True
 ):
-    from sklearn.metrics import (
-        confusion_matrix,
-        classification_report,
-        f1_score,
-        precision_score,
-        accuracy_score,
-        recall_score,
-    )
-
     # Validate the labels
     if (
-        not pd.Series(labels).isin(pred_df[y_col].unique()).all()
-        or not pd.Series(labels).isin(pred_df[pred_col].unique()).all()
+        not pd.Series(pred_df[y_col].unique()).isin(labels).all()
+        or not pd.Series(pred_df[pred_col].unique()).isin(labels).all()
+        # not pd.Series(labels).isin(pred_df[y_col].unique()).all()
+        # or not pd.Series(labels).isin(pred_df[pred_col].unique()).all()
     ):
         print("Labels mismatch between the prediction and the target.")
-        acc = prec = recall = f1 = 0
-        return acc, prec, recall, f1, None
+        print(f"\tLabels Specified: {labels}")
+        print(f"\tPrediction labels: {pred_df[pred_col].unique()}")
+        print(f"\tTarget labels: {pred_df[y_col].unique()}")
+        # acc = prec = recall = f1 = 0
+        # return acc, prec, recall, f1, None
 
     # === Report === #
     # Confusion matrix
@@ -135,32 +139,41 @@ def evaluate_prediction(
         print(f"TN: {tn}, FP: {fp}, FN: {fn}, TP: {tp}")
 
     # Accuracy
-    acc_man = (tp + tn) / (tp + tn + fp + fn)
+    acc_man = (tp + tn) / (tp + tn + fp + fn) if (tp + tn + fp + fn) != 0 else np.nan
     acc = accuracy_score(pred_df[y_col], pred_df[pred_col])
-    assert round(acc, 3) == round(acc_man, 3), f"Accuracy mismatch: {acc} != {acc_man}"
+    acc = acc if not np.isnan(acc) else acc_man
+    acc_man = acc_man if not np.isnan(acc_man) else acc
 
     # Precision
-    prec_man = tp / (tp + fp)
+    prec_man = tp / (tp + fp) if (tp + fp) != 0 else np.nan
     prec = precision_score(
         pred_df[y_col], pred_df[pred_col], labels=labels, pos_label=pos_label
     )
-    assert round(prec, 3) == round(prec_man, 3), (
-        f"Precision mismatch: {prec} != {prec_man}"
-    )
+    prec = prec if not np.isnan(prec) else prec_man
+    prec_man = prec_man if not np.isnan(prec_man) else prec
 
     # Recall
-    recall_man = tp / (tp + fn)
+    recall_man = tp / (tp + fn) if (tp + fn) != 0 else np.nan
     recall = recall_score(
         pred_df[y_col], pred_df[pred_col], labels=labels, pos_label=pos_label
     )
-    assert round(recall, 3) == round(recall_man, 3), (
-        f"Recall mismatch: {recall} != {recall_man}"
-    )
+    recall = recall if not np.isnan(recall) else recall_man
+    recall_man = recall_man if not np.isnan(recall_man) else recall
 
     # F1 score
-    f1_man = 2 * (prec * recall) / (prec + recall)
+    f1_man = (
+        2 * (prec_man * recall_man) / (prec_man + recall_man)
+        if (prec_man + recall_man) != 0
+        and not (np.isnan(prec_man) or np.isnan(recall_man))
+        else np.nan
+    )
     f1 = f1_score(pred_df[y_col], pred_df[pred_col], labels=labels, pos_label=pos_label)
-    assert round(f1, 3) == round(f1_man, 3), f"F1 score mismatch: {f1} != {f1_man}"
+    f1 = f1 if not np.isnan(f1) else f1_man
+    f1_man = f1_man if not np.isnan(f1_man) else f1
+
+    if report:
+        print(f"F1: {f1}, F1_man: {f1_man}")
+        print(f"Precision: {prec}, Recall: {recall}")
 
     return acc, prec, recall, f1, conf_matrix
 

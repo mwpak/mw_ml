@@ -23,7 +23,7 @@ from sklearn.ensemble import VotingClassifier
 from collections import Counter
 
 
-def custom_performance_metric(y_true, y_pred, y_value_of_interest):
+def custom_performance_metric(y_true, y_pred, y_value_of_interest, alpha=0.9):
     """
     Custom performance metric that combines overall F1 score and recall - false positive rate (FPR) for a specific class.
 
@@ -54,7 +54,7 @@ def custom_performance_metric(y_true, y_pred, y_value_of_interest):
     report = classification_report(y_true, y_pred, output_dict=True, zero_division=0)
     precision = report[str(y_value_of_interest)]["precision"]
     recall = report[str(y_value_of_interest)]["recall"]
-    performance = 0.8 * precision + 0.2 * recall
+    performance = alpha * precision + (1 - alpha) * recall
 
     return performance
 
@@ -345,7 +345,7 @@ def train_ensemble_voting_classifier(
 
             # Create model instance
             model = model_class(**params)
-            model_list.append((f"{model_name}_{i+1}", model))
+            model_list.append((f"{model_name}_{i + 1}", model))
 
     # Initialize VotingClassifier
     voting_type = "soft" if use_soft_voting else "hard"
